@@ -66,7 +66,7 @@ def a_star_search(start, goal, ocean):
     while frontier:
         _, current = heapq.heappop(frontier)
         
-        if current[1] == goal[1]:  # Reached the west side
+        if current == goal:  # Corrected goal condition check
             break
         
         for next_pos, direction in get_neighbors(current, ocean):
@@ -79,12 +79,16 @@ def a_star_search(start, goal, ocean):
     
     # Reconstruct path
     path = []
-    current = (goal[0], 0)
-    while current and current in came_from:
+    current = goal
+    # Check if the goal is reachable (exists in came_from)
+    if current not in came_from:
+        return []  # No path found, return empty path
+    
+    while current != start:
         prev, direction = came_from[current]
         path.append(direction)
         current = prev
-    return path[::-1] if path else []  # Return the reversed path
+    return path[::-1]  # Return the reversed path
 
 def move_titanic(ocean, titanic_pos, direction):
     """Move the Titanic in the given direction, updating the ocean grid."""
@@ -102,15 +106,18 @@ def move_titanic(ocean, titanic_pos, direction):
     if 0 <= new_row < len(ocean) and 0 <= new_col < len(ocean[0]):
         set_cell(ocean, new_row, new_col, TITANIC)  # Place Titanic at new position
         set_cell(ocean, titanic_pos[0], titanic_pos[1], WATER)  # Clear the previous position
-        return new_row, new_col
+        return (new_row, new_col)  # Return new position as tuple
     return titanic_pos  # Return the original position if the move is invalid
 
 def simulate_titanic(ocean_size, titanic_pos, iceberg_count, interactive=False):
     """Simulate the Titanic navigation using AI pathfinding or interactive mode."""
     ocean = create_ocean(ocean_size, iceberg_count)
+    
+    # Convert titanic_pos to tuple (for consistency)
+    titanic_pos = tuple(titanic_pos)
     set_cell(ocean, titanic_pos[0], titanic_pos[1], TITANIC)  # Place Titanic
 
-    # Get a goal at the western edge of the ocean
+    # Get a goal at the western edge of the ocean (use tuple)
     goal = (titanic_pos[0], 0)
 
     if interactive:
@@ -136,7 +143,7 @@ def simulate_titanic(ocean_size, titanic_pos, iceberg_count, interactive=False):
 
 # Example Usage
 ocean_size = 10
-titanic_pos = [4, 7]  # Starting position of Titanic
+titanic_pos = [4, 7]  # Starting position of Titanic (now converted to tuple)
 iceberg_count = 10  # Number of icebergs in the ocean
 
 simulate_titanic(ocean_size, titanic_pos, iceberg_count, interactive=False)  # AI mode
